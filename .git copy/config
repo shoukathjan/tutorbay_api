@@ -1,0 +1,44 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://github.com/shoukathjan/tutorbay_api.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+	vscode-merge-base = origin/master
+[branch "create-webhook-changes-v3"]
+	remote = origin
+	merge = refs/heads/create-webhook-changes-v3
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "swager-documentation-pending"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "create-webhook-changes-v3-exceptions-asyncwrapper"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "create-webhook-changes-v3-exceptions-asyncwrapper-v1"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "create-webhook-changes-v3-clone"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "create-webhook-changes-v3-clone-v1"]
+	vscode-merge-base = origin/master
+[branch "get-progress-meter-v1"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "dashboard-changes-v1"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "create-webhook-changes-v4"]
+	vscode-merge-base = origin/create-webhook-changes-v3
+[branch "create-webhook-changes-v4-cron-jobs"]
+	vscode-merge-base = origin/master
+[branch "development"]
+	remote = origin
+	merge = refs/heads/development
+	vscode-merge-base = origin/development
+[branch "Super-Admin-V1"]
+	remote = origin
+	merge = refs/heads/Super-Admin-V1
+	vscode-merge-base = origin/Super-Admin-V1
+[branch "tutorbay-develop"]
+	vscode-merge-base = origin/Super-Admin-V1
