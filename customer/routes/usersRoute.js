@@ -5,6 +5,7 @@ const auth = require('../../middleware/authentication');
 
 router.post('/create-user',usersControllers.validateUserRegistration, usersControllers.createUser)
 router.post('/login',usersControllers.validateLoginProcess, usersControllers.loginUser)
+router.post('/google-login',usersControllers.googleLogin)
 router.use(auth)
 
 /*

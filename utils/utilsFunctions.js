@@ -1,4 +1,13 @@
 
+const jwt = require('jsonwebtoken');
+
+
+const generateToken = (user) => {
+  const payload = { userId: user._id, userType: user.userType };
+  return jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+};
+
+
 function formatDate(date, isEndOfDay = false) {
   const pad = (num) => String(num).padStart(2, '0');
   const year = date.getFullYear();
@@ -55,5 +64,4 @@ function returnIndianDate(currentTime) {
   return ISTTime
 }
 
-
-module.exports = { dateAsset, EmailDateAsset, returnIndianDate }
+module.exports = { dateAsset, EmailDateAsset, returnIndianDate, generateToken }

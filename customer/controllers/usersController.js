@@ -4,10 +4,50 @@ const asyncWrapper = require('../../middleware/asyncWrapper');
 const customConstants = require('../../config/constants.json');
 const sessionsModel = require('../../models/sessionsModel');
 const { hashPwd, comparePassword, twelveWeeksSales } = require('../../utils/helpers');
+const { OAuth2Client } = require('google-auth-library');
 const mongoose = require('mongoose')
 
 const { validateUserMobileEmailData, validatePhoneNumber } = require('../../utils/userLoginValidation');
 const tutorsModel = require('../../models/tutorsModel');
+const { generateToken } = require('../../utils/utilsFunctions');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
+exports.googleLogin = asyncWrapper(async (req, res) => {
+  const { token } = req.body;
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+
+  const { sub: googleId, email, given_name, family_name, picture } = payload;
+
+  let user = await usersModel.findOne({ googleId });
+
+  if (!user) {
+    // Create new user with basic info
+    user = await usersModel.create({
+      googleId,
+      email,
+      registrationMethod: 'google',
+      firstName: given_name,
+      lastName: family_name,
+      profilePicture: picture,
+    });
+  }
+
+  const jwtToken = generateToken(user);
+
+  res.status(200).json({
+    message: 'Google sign-in successful',
+    token: jwtToken,
+    profileComplete: !!user.userType && !!user.firstName,
+  });
+
+})
+
 /*
 Miidleware function to controller, "createUser"
 Mandatory fields -> Name, Company name, Email, Role, Phone ,Password
@@ -15,88 +55,131 @@ Funtion to check existence of mandatory fields in payload
 If returns True, moves to "next" function , "createUser"
 */
 exports.validateUserRegistration = asyncWrapper(async (req, res, next) => {
-  const { firstName, lastName, email, phone, userType, password } = req.body
-  if (!firstName || !lastName || !email || !password || !userType) {
+  const { firstName, lastName, email, phone, userType, password } = req.body;
+  if (!firstName || !lastName || !email || !phone || !password || !userType) {
     return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
       status: customConstants.messages.MESSAGE_FAIL,
-      message: customConstants.messages.MESSAGE_MANDATORY_FIELDS
+      message: customConstants.messages.MESSAGE_MANDATORY_FIELDS,
     });
   }
-  if (phone && !await validatePhoneNumber(phone)) {
+  if (!await validatePhoneNumber(phone)) {
     return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
       status: customConstants.messages.MESSAGE_FAIL,
-      message: customConstants.messages.MESSAGE_PHONE_NUMBER_VALIDATE
+      message: customConstants.messages.MESSAGE_PHONE_NUMBER_VALIDATE,
     });
   }
-  // if (!['super-admin','parent'].includes(req.user.role)) {
-  //   return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
-  //     status: customConstants.messages.MESSAGE_FAIL,
-  //     message: customConstants.messages.MESSAGE_SESSION_NO_ACCESS_TO_ADD_USER,
-  //   });
-  // }
-  else {
-    next()
+  let validatedData = validateUserMobileEmailData({ mobileEmail: email });
+  if (validatedData.error) {
+    return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_REQUEST_BODY_ERROR,
+      error: validatedData.error.details,
+    });
   }
-})
+  if (!['tutor', 'parent', 'student'].includes(userType)) {
+    return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_WRONG_FIELDS,
+    });
+  }
+  next();
+});
 
-
-/*
-Function to create user by Admin or by self- need to be discussed
-Mandatory fields -> Name, Company name, Email, Role, Phone ,Password
-Returns newly created user
-
-*/
+// Create user (manual registration)
 exports.createUser = asyncWrapper(async (req, res) => {
-  const { firstName, lastName, email, phone, userType, password } = req.body
-  const userDetails = await usersModel.findOne({ $or: [{ email }, { phone }] })
-  console.log(password, "password")
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    userType,
+    password,
+    role,
+    registrationMethod,
+    highestQualification,
+    nationality,
+    emiratesTutor,
+    currentLocationURLTutor,
+    mapLocationTutor,
+    hasPrivateTutorLicense,
+    licenseDocumentUrl,
+    modeOfTeaching,
+    availability,
+    expectedFeePerHour,
+    curriculum,
+    subject,
+    emirates,
+    currentLocationURL,
+    mapLocation,
+  } = req.body;
 
-  if (userType === 'tutor') {
-    const tutorDetails = await tutorsModel.findOne({ $or: [{ phone: phone }, { email: email }] });
-    if (tutorDetails) {
-      return res.status(customConstants.statusCodes.DATA_CONFLICAT).json({
-        status: customConstants.messages.MESSAGE_FAIL,
-        message: customConstants.messages.MESSAGE_TUTOR_EXIST
-      })
-    }
-    else {
-      req.body.password = await hashPwd(password)
-      const userData = await tutorsModel.create({
-        ...req.body,
-      })
-      delete userData._doc.password;
-      return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
-        status: customConstants.messages.MESSAGE_SUCCESS,
-        message: customConstants.messages.MESSAGE_TUTOR_CREATED
-      })
-    }
-  }
-  else if (['parent', 'student'].includes(userType)) {
-    const userDetails = await usersModel.findOne({ $or: [{ phone: phone }, { email: email }] });
-    if (userDetails) {
-      return res.status(customConstants.statusCodes.DATA_CONFLICAT).json({
-        status: customConstants.messages.MESSAGE_FAIL,
-        message: customConstants.messages.MESSAGE_USER_EXIST
-      })
-    }
-    else {
-      req.body.password = await hashPwd(password)
-      const userData = await usersModel.create({
-        ...req.body,
-      })
-      delete userData._doc.password;
-      return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
-        status: customConstants.messages.MESSAGE_SUCCESS,
-        message: customConstants.messages.MESSAGE_USER_CREATED
-      })
-    }
-  }
-  else {
+  // Check for existing user
+  let existingUser = await usersModel.findOne({ $or: [{ email }, { phone }] });
+  if (existingUser) {
     return res.status(customConstants.statusCodes.DATA_CONFLICAT).json({
       status: customConstants.messages.MESSAGE_FAIL,
-      message: customConstants.messages.MESSAGE_WRONG_FIELDS
-    })
+      message:
+        existingUser.email === email
+          ? customConstants.messages.MESSAGE_USER_EXIST
+          : customConstants.messages.MESSAGE_PHONE_EXISTS,
+    });
   }
+
+  const userData = {
+    firstName,
+    lastName,
+    email,
+    phone,
+    userType,
+    password: await hashPwd(password),
+    registrationMethod: registrationMethod,
+    status: 'active',
+    role: role || 'manager',
+  };
+
+  let createdUser;
+  if (userType === 'tutor') {
+    userData.tutorProfile = {
+      highestQualification,
+      nationality,
+      registrationMethod: registrationMethod,
+      emirates: emiratesTutor,
+      location: {
+        currentLocationURL,
+        mapLocation,
+      },
+      hasPrivateTutorLicense,
+      licenseDocumentUrl,
+      modeOfTeaching,
+      availability,
+      expectedFeePerHour,
+    };
+    // createdUser = await tutorsModel.create(userData);
+  } else if (['parent', 'student'].includes(userType)) {
+    userData.parentStudentProfile = {
+      curriculum,
+      subject,
+      emirates,
+      location: {
+        currentLocationURL,
+        mapLocation,
+      },
+    };
+    // createdUser = await usersModel.create(userData);
+  }
+  createdUser = await usersModel.create(userData);
+
+  const userObject = createdUser.toObject();
+  delete userObject.password;
+
+  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
+    status: customConstants.messages.MESSAGE_SUCCESS,
+    message:
+      userType === 'tutor'
+        ? customConstants.messages.MESSAGE_TUTOR_CREATED
+        : customConstants.messages.MESSAGE_USER_CREATED,
+    data: userObject,
+  });
 });
 
 
@@ -258,49 +341,34 @@ Funtion to check
 If returns True, moves to "next" function , "loginUser"
 */
 exports.validateLoginProcess = asyncWrapper(async (req, res, next) => {
-
-  const { mobileEmail, password, userType } = req.body;
-  let user
-  if (!mobileEmail || !password) {
+  const { mobileEmail, password, loginMethod } = req.body;
+  if ((!mobileEmail || !password) && loginMethod === "manual") {
     return res.status(customConstants.statusCodes.BAD_REQUEST).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_FIELDS_MANDATORY,
     });
   }
-  let validatedUserMobileAndEmailData = validateUserMobileEmailData(req.body);
+  let validatedUserMobileAndEmailData = validateUserMobileEmailData({ mobileEmail });
   if (validatedUserMobileAndEmailData.error) {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       message: customConstants.messages.MESSAGE_REQUEST_BODY_ERROR,
       status: customConstants.messages.MESSAGE_FAIL,
-      error: validatedUserMobileAndEmailData.error.details
+      error: validatedUserMobileAndEmailData.error.details,
     });
   }
-  if (userType === 'tutor') {
-    user = await tutorsModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] });
-  }
-  else if (['parent', 'student'].includes(userType)) {
-    user = await usersModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] });
-  }
-
-  // If user not found
+  let user = await usersModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] });
   if (!user) {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_PHONE_NOT_EXISTS,
     });
   }
-  // if (["super-admin"].includes(user.role)) {
-  //   return res.status(customConstants.statusCodes.FORBIDDEN).json({
-  //     status: customConstants.messages.MESSAGE_FAIL,
-  //     message: customConstants.messages.MESSAGE_ONLY_CUSTOMER_ENTRY,
-  //   });
-  // }
-  // if (['in-progress', 'blocked'].includes(user.accountId.status)) {
-  //   return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
-  //     status: customConstants.messages.MESSAGE_FAIL,
-  //     message: customConstants.messages.MESSAGE_PREVENT_LOGIN_ACCOUNT_IN_PROGRESS,
-  //   });
-  // }
+  if (user.registrationMethod === 'google') {
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_USE_GOOGLE_LOGIN,
+    });
+  }
   if (user.status === 'deleted') {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
@@ -308,65 +376,45 @@ exports.validateLoginProcess = asyncWrapper(async (req, res, next) => {
     });
   }
 
-  // Compare password 
   const comparePasswordResult = await comparePassword(password, user.password);
-  console.log(comparePasswordResult, "comparePasswordResult");
-
-  // If password does not match
   if (!comparePasswordResult) {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_WRONG_PASSWORD,
     });
   }
-  next()
-
-})
-
+  next();
+});
 
 /*
 If middleware returns True, this function create session with valid JWT token
 Mandatory fields -> Phone and Password 
 */
 exports.loginUser = asyncWrapper(async (req, res) => {
-  const { mobileEmail, password, userType } = req.body;
+  const { mobileEmail, userType } = req.body;
   let user_details = {};
-  let user
-  let userData, jwtToken, jwtTokenExpires
-  if (userType === 'tutor') {
-    user = await tutorsModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] }, { _id: 0, password: 0 });
-    userData = await tutorsModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] });
-    user_details.userDetails = user.toObject();
-    // Generate JWT token
-    jwtToken = await userData.getJWTToken();
-    jwtTokenExpires = await userData.getJWTTokenExpireDate(jwtToken);
+  let user, userData, jwtToken, jwtTokenExpires;
 
-    // user_details.userDetails = user.toObject();
-    req.body.tutorId = userData._id;
+  user = await usersModel.findOne(
+    { $or: [{ phone: mobileEmail }, { email: mobileEmail }] },
+    { password: 0 }
+  );
+  userData = await usersModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] });
+  if (!userData) {
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_PHONE_NOT_EXISTS,
+    });
   }
-  else if (['parent', 'student'].includes(userType)) {
-    console.log('Chanduuuu')
-    user = await usersModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] }, { _id: 0, password: 0 });
-    userData = await usersModel.findOne({ $or: [{ phone: mobileEmail }, { email: mobileEmail }] });
-    user_details.userDetails = user.toObject();
-    // Generate JWT token
-    jwtToken = await userData.getJWTToken();
-    jwtTokenExpires = await userData.getJWTTokenExpireDate(jwtToken);
-
-    // user_details.userDetails = user.toObject();
-    req.body.userId = userData._id;
-  }
-
-  user_details.userDetails = user;
-  console.log("userData:===", userData)
-
-  // Create session
+  jwtToken = await userData.getJWTToken();
+  jwtTokenExpires = await userData.getJWTTokenExpireDate(jwtToken);
+  req.body.userId = userData._id;
+  user_details.userDetails = user.toObject();
   req.body.accessToken = jwtToken;
   req.body.expirationTime = jwtTokenExpires.exp;
-  const sesssionDetails = await sessionsModel.create(req.body);
-  user_details.sesssionDetails = sesssionDetails;
+  const sessionDetails = await sessionsModel.create(req.body);
+  user_details.sessionDetails = sessionDetails;
 
-  // Return success response
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
     message: customConstants.messages.MESSAGE_USER_LOGIN,

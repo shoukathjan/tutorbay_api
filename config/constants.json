@@ -7,6 +7,7 @@
     "MESSAGE_SUCCESS": "success",
     "MESSAGE_FAIL": "fail",
     "MESSAGE_WARNING": "warning",
+    "MESSAGE_USE_GOOGLE_LOGIN":"Use google login.",
     "MESSAGE_REQUEST_BODY_ERROR": "Payload validation error.",
     "MESSAGE_IMAGE_UPLOAD": "Image uploaded succesfully.",
     "MESSAGE_SESSION_EXPIRED": "Your session has expired or token no longer available. This incident wil record.",
