@@ -24,7 +24,7 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
 
   const { sub: authId, email, given_name, family_name, picture } = payload;
 
-  let user = await usersModel.findOne({ authId });
+  let user = await usersModel.findOne({ $or:[{authId},{email}] });
 
   if (!user) {
     // Create new user with basic info
@@ -37,18 +37,22 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
       profilePicture: picture,
     });
   }
-  let user_details = {}
+  else if (user){
+    user = await usersModel.findOneAndUpdate({email:email},{authId:authId},{new: true})
+  }
+  let userDetails = {}
   const getJwtToken = generateToken(user);
   req.body.userId = user._id;
-  user_details.userDetails = user.toObject();
+  userDetails.user = user.toObject();
   req.body.accessToken = getJwtToken.jwtToken;
   req.body.expirationTime = getJwtToken.expiresIn;
   const sessionDetails = await sessionsModel.create(req.body);
-  user_details.sessionDetails = sessionDetails;
+  userDetails.sessionDetails = sessionDetails;
 
   res.status(200).json({
     message: 'Google sign-in successful',
-    user_details,
+    authId:authId,
+    data: {...userDetails},
     profileComplete: given_name,
   });
 
