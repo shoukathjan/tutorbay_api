@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 
@@ -140,9 +141,9 @@ const usersSchema = new mongoose.Schema(
                     },
                 },
             },
-            required: function () {
-                return this.userType === 'parent' || this.userType === 'student';
-            },
+            // required: function () {
+            //     return this.userType === 'parent' || this.userType === 'student';
+            // },
         },
         tutorProfile: {
             type: {
@@ -245,9 +246,9 @@ const usersSchema = new mongoose.Schema(
                     default: 0,
                 },
             },
-            required: function () {
-                return this.userType === 'tutor';
-            },
+            // required: function () {
+            //     return this.userType === 'tutor';
+            // },
         },
     },
     {
