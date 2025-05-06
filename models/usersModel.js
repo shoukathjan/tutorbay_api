@@ -63,7 +63,7 @@ const usersSchema = new mongoose.Schema(
             // select: false,
             default: '',
         },
-        googleId: {
+        authId: {
             type: String,
             sparse: true,
             default: null,

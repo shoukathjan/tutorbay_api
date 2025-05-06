@@ -22,28 +22,33 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
 
   const payload = ticket.getPayload();
 
-  const { sub: googleId, email, given_name, family_name, picture } = payload;
+  const { sub: authId, email, given_name, family_name, picture } = payload;
 
-  // let user = await usersModel.findOne({ googleId });
+  let user = await usersModel.findOne({ authId });
 
-  // if (!user) {
-  //   // Create new user with basic info
-  //   user = await usersModel.create({
-  //     googleId,
-  //     email,
-  //     registrationMethod: 'google',
-  //     firstName: given_name,
-  //     lastName: family_name,
-  //     profilePicture: picture,
-  //   });
-  // }
-  // const jwtToken = generateToken(user);
-
-  const jwtToken = generateToken();
+  if (!user) {
+    // Create new user with basic info
+    user = await usersModel.create({
+      authId,
+      email,
+      registrationMethod: 'google',
+      firstName: given_name,
+      lastName: family_name,
+      profilePicture: picture,
+    });
+  }
+  let user_details = {}
+  const getJwtToken = generateToken(user);
+  req.body.userId = user._id;
+  user_details.userDetails = user.toObject();
+  req.body.accessToken = getJwtToken.jwtToken;
+  req.body.expirationTime = getJwtToken.expiresIn;
+  const sessionDetails = await sessionsModel.create(req.body);
+  user_details.sessionDetails = sessionDetails;
 
   res.status(200).json({
     message: 'Google sign-in successful',
-    token: jwtToken,
+    user_details,
     profileComplete: given_name,
   });
 
@@ -89,6 +94,7 @@ exports.validateUserRegistration = asyncWrapper(async (req, res, next) => {
 // Create user (manual registration)
 exports.createUser = asyncWrapper(async (req, res) => {
   const {
+    userId,
     firstName,
     lastName,
     email,
@@ -100,8 +106,6 @@ exports.createUser = asyncWrapper(async (req, res) => {
     highestQualification,
     nationality,
     emiratesTutor,
-    currentLocationURLTutor,
-    mapLocationTutor,
     hasPrivateTutorLicense,
     licenseDocumentUrl,
     modeOfTeaching,
@@ -113,19 +117,6 @@ exports.createUser = asyncWrapper(async (req, res) => {
     currentLocationURL,
     mapLocation,
   } = req.body;
-
-  // Check for existing user
-  let existingUser = await usersModel.findOne({ $or: [{ email }, { phone }] });
-  if (existingUser) {
-    return res.status(customConstants.statusCodes.DATA_CONFLICAT).json({
-      status: customConstants.messages.MESSAGE_FAIL,
-      message:
-        existingUser.email === email
-          ? customConstants.messages.MESSAGE_USER_EXIST
-          : customConstants.messages.MESSAGE_PHONE_EXISTS,
-    });
-  }
-
   const userData = {
     firstName,
     lastName,
@@ -168,19 +159,47 @@ exports.createUser = asyncWrapper(async (req, res) => {
     };
     // createdUser = await usersModel.create(userData);
   }
-  createdUser = await usersModel.create(userData);
+  // Check for existing user
+  let existingUser = await usersModel.findOne({ $or: [{ email }, { phone }] });
+  if (existingUser) {
+    createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true});
+  
+    const userObject = createdUser.toObject();
+    delete userObject.password;
+  
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
+      status: customConstants.messages.MESSAGE_SUCCESS,
+      message:
+        userType === 'tutor'
+          ? customConstants.messages.MESSAGE_TUTOR_CREATED
+          : customConstants.messages.MESSAGE_USER_CREATED,
+      data: userObject,
+    });
+    return res.status(customConstants.statusCodes.DATA_CONFLICAT).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message:
+        existingUser.email === email
+          ? customConstants.messages.MESSAGE_USER_EXIST
+          : customConstants.messages.MESSAGE_PHONE_EXISTS,
+    });
+  }
+  else{
+    createdUser = await usersModel.create(userData);
+  
+    const userObject = createdUser.toObject();
+    delete userObject.password;
+  
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
+      status: customConstants.messages.MESSAGE_SUCCESS,
+      message:
+        userType === 'tutor'
+          ? customConstants.messages.MESSAGE_TUTOR_CREATED
+          : customConstants.messages.MESSAGE_USER_CREATED,
+      data: userObject,
+    });
+  }
 
-  const userObject = createdUser.toObject();
-  delete userObject.password;
-
-  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
-    status: customConstants.messages.MESSAGE_SUCCESS,
-    message:
-      userType === 'tutor'
-        ? customConstants.messages.MESSAGE_TUTOR_CREATED
-        : customConstants.messages.MESSAGE_USER_CREATED,
-    data: userObject,
-  });
+  
 });
 
 
