@@ -42,7 +42,7 @@ const tutorSchema = new mongoose.Schema({
     },    
     status: {
         type: String,
-        enum: ['active', 'deleted', 'blocked'],
+        enum: ['active', 'delete', 'blocked'],
         default: "active"
     },
     highestQualification: {

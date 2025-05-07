@@ -165,7 +165,7 @@ exports.createUser = asyncWrapper(async (req, res) => {
   }
   // Check for existing user
   let existingUser = await usersModel.findOne({ $or: [{ email }, { phone }] });
-  if (existingUser) {
+  if (existingUser && userId) {
     createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true});
   
     const userObject = createdUser.toObject();
@@ -178,13 +178,6 @@ exports.createUser = asyncWrapper(async (req, res) => {
           ? customConstants.messages.MESSAGE_TUTOR_CREATED
           : customConstants.messages.MESSAGE_USER_CREATED,
       data: userObject,
-    });
-    return res.status(customConstants.statusCodes.DATA_CONFLICAT).json({
-      status: customConstants.messages.MESSAGE_FAIL,
-      message:
-        existingUser.email === email
-          ? customConstants.messages.MESSAGE_USER_EXIST
-          : customConstants.messages.MESSAGE_PHONE_EXISTS,
     });
   }
   else{
@@ -209,11 +202,11 @@ exports.createUser = asyncWrapper(async (req, res) => {
 
 /**
   *Middleware function to check whether account and user are active before proceeding to delete
-  *If middleware is passed, Function call is passed to update status of user to "Deleted".
+  *If middleware is passed, Function call is passed to update status of user to "delete".
   *If successful, returns updated record.
 */
 exports.middlewareToDeleteUser = asyncWrapper(async (req, res, next) => {
-  if (req.user.status === 'deleted') {
+  if (req.user.status === 'delete') {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_USER_ALREADY_DELETED,
@@ -233,18 +226,18 @@ exports.middlewareToDeleteUser = asyncWrapper(async (req, res, next) => {
 
 /** 
   *Function to delete user 
-  *PATCH route to update the status of user to "deleted"
+  *PATCH route to update the status of user to "delete"
   *Route to be provided only to Admin; Not accessible by user by self.
    *If successful, returns updated record.
 
 */
 exports.updateUserStatus = asyncWrapper(async (req, res) => {
-  // const deactivateUser = await usersModel.findByIdAndUpdate(req.params.userId, { $set: { status: 'deleted', updatedBy: req.user_id } }, { new: true });
+  // const deactivateUser = await usersModel.findByIdAndUpdate(req.params.userId, { $set: { status: 'delete', updatedBy: req.user_id } }, { new: true });
   // delete deactivateUser.password;
   let userDetails
   const { status } = req.body
   if (status === 'delete') {
-    userDetails = await usersModel.findByIdAndUpdate(req.params.userId, { $set: { status: 'deleted', updatedBy: req.user_id } }, { new: true });
+    userDetails = await usersModel.findByIdAndUpdate(req.params.userId, { $set: { status: 'delete', updatedBy: req.user_id } }, { new: true });
     delete userDetails.password
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
       status: customConstants.messages.MESSAGE_SUCCESS,
@@ -318,7 +311,7 @@ exports.getAllUsers = asyncWrapper(async (req, res) => {
 exports.middlewareUpdateUserDetails = asyncWrapper(async (req, res, next) => {
   const userStatusCheck = await usersModel.findById(req.params.userId);
   console.log('userStatusCheck', userStatusCheck)
-  if (userStatusCheck.status === 'deleted') {
+  if (userStatusCheck.status === 'delete') {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_USER_STATUS_IS_DELETED,
@@ -387,13 +380,13 @@ exports.validateLoginProcess = asyncWrapper(async (req, res, next) => {
       message: customConstants.messages.MESSAGE_PHONE_NOT_EXISTS,
     });
   }
-  if (user.registrationMethod === 'google') {
-    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
-      status: customConstants.messages.MESSAGE_FAIL,
-      message: customConstants.messages.MESSAGE_USE_GOOGLE_LOGIN,
-    });
-  }
-  if (user.status === 'deleted') {
+  // if (user.registrationMethod === 'google') {
+  //   return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+  //     status: customConstants.messages.MESSAGE_FAIL,
+  //     message: customConstants.messages.MESSAGE_USE_GOOGLE_LOGIN,
+  //   });
+  // }
+  if (user.status === 'delete') {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_PREVENT_LOGIN_ACCOUNT_DELETED,
@@ -433,7 +426,7 @@ exports.loginUser = asyncWrapper(async (req, res) => {
   jwtToken = await userData.getJWTToken();
   jwtTokenExpires = await userData.getJWTTokenExpireDate(jwtToken);
   req.body.userId = userData._id;
-  user_details.userDetails = user.toObject();
+  user_details.user = user.toObject();
   req.body.accessToken = jwtToken;
   req.body.expirationTime = jwtTokenExpires.exp;
   const sessionDetails = await sessionsModel.create(req.body);
@@ -477,7 +470,7 @@ exports.middlewareToUpdatePassword = asyncWrapper(async (req, res, next) => {
   //     message: customConstants.messages.MESSAGE_PREVENT_LOGIN_ACCOUNT_IN_PROGRESS,
   //   });
   // }
-  if (user.accountId.status === 'deleted' || user.status === 'deleted') {
+  if (user.accountId.status === 'delete' || user.status === 'delete') {
     return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
       status: customConstants.messages.MESSAGE_FAIL,
       message: customConstants.messages.MESSAGE_PREVENT_LOGIN_ACCOUNT_DELETED,

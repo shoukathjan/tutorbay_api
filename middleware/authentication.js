@@ -40,7 +40,7 @@ const auth = asyncWrapper(async (req, _res, next) => {
   } else {
     const payload = await jwt.verify(token, "secret");
    
-    const user = await usersModel.findById(payload.userId).populate('accountId');
+    const user = await usersModel.findById(payload.userId);
     const sessionObject = await sessionModel.findOne({
       userId: payload.userId,
       accessToken: token,

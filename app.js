@@ -24,13 +24,13 @@ const errorcontroller = require('./customer/controllers/errorcontroller');
 
 //Super Admin Routes.
 
-const superAdminUserRoutes = require('./superAdmin/routes/userRoute')
+const superAdminUserRoutes = require('./superAdmin/routes/superAdminUserRoute')
 
 app.use('/api/users', usersRoute);
 
 //Super Admin
 // app.use('/api/accounts',SuperAdminAccountRoutes)
-// app.use('/api/users',superAdminUserRoutes)
+app.use('/api/super-admin/users',superAdminUserRoutes)
 
 // Error Handling Middleware (optional)
 app.use(errorcontroller);

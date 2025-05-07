@@ -6,9 +6,8 @@ const asyncWrapper = require("../../middleware/asyncWrapper");
 
 const superAdminAuth = asyncWrapper(async (req, _res, next) => {
   const authHeader = req.headers.authorization;
-
+  
   const token = authHeader.split(" ")[1];
-
   if (!authHeader || !authHeader.startsWith("Bearer")) {
     throw new Error(customConstants.messages.MESSAGE_SESSION_NO_HEADER);
   } else if (!token || token === "") {
@@ -16,7 +15,7 @@ const superAdminAuth = asyncWrapper(async (req, _res, next) => {
   } else {
     const payload = await jwt.verify(token, "secret");
     console.log(payload.userId, token, "goood");
-    const user = await usersModel.findById(payload.userId).populate('accountId');
+    const user = await usersModel.findById(payload.userId);
     const sessionObject = await sessionModel.findOne({
       userId: payload.userId,
       accessToken: token,
@@ -34,7 +33,7 @@ const superAdminAuth = asyncWrapper(async (req, _res, next) => {
           status: customConstants.messages.MESSAGE_EXPIRED,
           message: customConstants.messages.MESSAGE_SESSION_EXPIRED,
         });
-    } else if(user.accountId.accountType!=='super-admin'){
+    } else if(user.userType!=='super-admin'){
       _res
       .status(customConstants.statusCodes.FORBIDDEN)
       .json({

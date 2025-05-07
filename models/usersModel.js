@@ -90,7 +90,7 @@ const usersSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: {
-                values: ['active', 'deleted', 'blocked'],
+                values: ['active', 'delete', 'block'],
                 message: '{VALUE} is not a valid status',
             },
             default: 'active',
@@ -259,14 +259,14 @@ const usersSchema = new mongoose.Schema(
 // JWT Methods
 usersSchema.methods.getJWTToken = function () {
     const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1h';
-    return jwt.sign({ userId: this._id, userType: this.userType }, process.env.JWT_SECRET || 'secret', {
+    return jwt.sign({ userId: this._id},'secret', {
         expiresIn: jwtExpiresIn,
     });
 };
 
 usersSchema.methods.getJWTTokenExpireDate = async function (jwtToken) {
     try {
-        const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET || 'secret');
+        const decoded = jwt.verify(jwtToken, 'secret');
         return decoded;
     } catch (error) {
         throw new Error('Invalid or expired token');
