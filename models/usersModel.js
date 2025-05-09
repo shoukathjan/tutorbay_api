@@ -99,10 +99,10 @@ const usersSchema = new mongoose.Schema(
             type: {
                 curriculum: {
                     type: String,
-                    enum: {
-                        values: ['British', 'American', 'IB', 'CBSE', 'Other'],
-                        message: '{VALUE} is not a valid curriculum',
-                    },
+                    // enum: {
+                    //     values: ['British', 'American', 'IB', 'CBSE', 'Other'],
+                    //     message: '{VALUE} is not a valid curriculum',
+                    // },
                     //   required: [true, 'Curriculum is required for parents and students'],
                     default: '',
                 },

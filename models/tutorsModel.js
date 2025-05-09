@@ -9,37 +9,12 @@ const tutorSchema = new mongoose.Schema({
         },
         index: true
     },
-    firstName: {
-        type: String,
-        required: true,
-        trim: true
+    userId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'users',
+        index:true,
+        default:null
     },
-    lastName: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    phone: {
-        type: String,
-        // required: [true, 'Mobile number is required.'],
-        minlength: 10,
-        maxlength: 15,
-        match: /^[0-9]+$/,
-        default: "",
-        unique: [true, 'Phone must be unique']
-    },
-    email: {
-        type: String,
-        required: [true, 'Email is required.'],
-        default: "",
-        unique: [true, 'Email must be unique']
-    },
-    password: {
-        type: String,
-        required: [true, 'Password is required.'],
-        min: 8,
-        max:10
-    },    
     status: {
         type: String,
         enum: ['active', 'delete', 'blocked'],
@@ -47,24 +22,25 @@ const tutorSchema = new mongoose.Schema({
     },
     highestQualification: {
         type: String,
-        required: true
+        // required: true
     },
     nationality: {
         type: String,
-        required: true
+        // required: true
     },
     emirates: {
         type: String,
-        required: true
+        // required: true
     },
-    currentLocationURL: {
-        type: String,
-        required: true
-    },
-    mapLocation: {
-        type: Array,
-        default: [],
-        required: false
+    location: {
+        currentLocationURL: {
+            type: String,
+            default: '',
+        },
+        mapLocation: {
+            type: [{ lat: { type: Number }, lng: { type: Number } }],
+            default: [],
+        },
     },
     hasPrivateTutorLicense: {
         type: Boolean,
@@ -77,7 +53,7 @@ const tutorSchema = new mongoose.Schema({
     modeOfTeaching: {
         type: String,
         enum: ['Online', 'Offline', 'Both'],
-        required: true
+        // required: true
     },
     availability: {
         type: [
@@ -85,33 +61,20 @@ const tutorSchema = new mongoose.Schema({
                 days: {
                     type: String,
                     enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-                    required: true
+                    // required: true
                 },
-                startTime: { type: String, required: true },
-                endTime: { type: String, required: true }
+                startTime: { type: String},
+                endTime: { type: String}
             }
         ],
-        required: true
+        // required: true
     },
     expectedFeePerHour: {
         type: Number,
-        required: true
+        // required: true
     }
 }, {
     timestamps: true
 });
-
-// JWT Methods
-tutorSchema.methods.getJWTToken = function () {
-    const jwtExpiresInput = process.env.JWT_EXPIRES_IN;
-    return jwt.sign({ userId: this._id }, 'secret', {
-        expiresIn: jwtExpiresInput,
-    });
-};
-
-tutorSchema.methods.getJWTTokenExpireDate = async (jwtToken) => {
-    const decode = jwt.verify(jwtToken, 'secret');
-    return decode;
-};
 
 module.exports = mongoose.model('tutors', tutorSchema);

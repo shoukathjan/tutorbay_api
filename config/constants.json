@@ -145,7 +145,11 @@
     "MESSAGE_WEBOOK_GET_SINGLE_MACHINE_REPORTS": "Machine details.",
     "MESSAGE_WEBOOK_GET_MACHINE_DENOMINATIONS": "Machine denominations.",
     "MESSAGE_PROGRESS_METER_SINGLE_MACHINE": "Progress meter of single machine retrieved succesfully.",
-    "MESSAGE_GET_SINGLE_MACHINE_REPORTS": "Get single machine reports based on desired filters."
+    "MESSAGE_GET_SINGLE_MACHINE_REPORTS": "Get single machine reports based on desired filters.",
+
+    
+    "MESSAGE_CREATE_REQUIREMENT":"Your tutoring requirement has been posted successfully. Our tutors will reach out to you shortly.",
+    "MESSAGE_GET_SINGLE_USER_REQUIREMENTS":"Requirements fetched successfully."
   },
   "statusCodes": {
     "FORBIDDEN": 403,

@@ -19,6 +19,7 @@ mongooseConnect.DbConnect();
 
 // Routes 
 const usersRoute = require('./customer/routes/usersRoute');
+const postRequireMents = require('./customer/routes/postRequirementsRoute')
 
 const errorcontroller = require('./customer/controllers/errorcontroller');
 
@@ -27,6 +28,8 @@ const errorcontroller = require('./customer/controllers/errorcontroller');
 const superAdminUserRoutes = require('./superAdmin/routes/superAdminUserRoute')
 
 app.use('/api/users', usersRoute);
+app.use('/api/requirements', postRequireMents);
+
 
 //Super Admin
 // app.use('/api/accounts',SuperAdminAccountRoutes)
