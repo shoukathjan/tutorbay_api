@@ -81,7 +81,7 @@ const postRequirementSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['open', 'closed'],
+            enum: ['open', 'active', 'closed'],
             default: 'open',
         },
     },

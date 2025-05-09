@@ -32,6 +32,7 @@ exports.getSingleUserRequirements = asyncWrapper(async (req, res) => {
     const requirementDetails = await postRequireMentsModel.find({ userId: userId }).lean()
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
         status: customConstants.messages.MESSAGE_SUCCESS,
-        message: customConstants.messages.MESSAGE_GET_SINGLE_USER_REQUIREMENTS
+        message: customConstants.messages.MESSAGE_GET_SINGLE_USER_REQUIREMENTS,
+        data:requirementDetails
     });
 })
