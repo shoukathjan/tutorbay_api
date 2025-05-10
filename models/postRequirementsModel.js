@@ -53,7 +53,7 @@ const postRequirementSchema = new mongoose.Schema(
         },
         modeOfTeaching: {
             type: String,
-            enum: ['Online', 'In-Person', 'Both'],
+            enum: ['online', 'offline', 'both'],
             required: true,
         },
         availability: {
@@ -81,7 +81,7 @@ const postRequirementSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['open', 'active', 'closed'],
+            enum: ['open', 'active', 'close'],
             default: 'open',
         },
     },
