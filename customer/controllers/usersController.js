@@ -24,7 +24,7 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
 
   const { sub: authId, email, given_name, family_name, picture } = payload;
 
-  let user = await usersModel.findOne({ $or:[{authId},{email}] });
+  let user = await usersModel.findOne({ $or: [{ authId }, { email }] });
 
   if (!user) {
     // Create new user with basic info
@@ -37,8 +37,8 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
       profilePicture: picture,
     });
   }
-  else if (user){
-    user = await usersModel.findOneAndUpdate({email:email},{authId:authId},{new: true})
+  else if (user) {
+    user = await usersModel.findOneAndUpdate({ email: email }, { authId: authId }, { new: true })
   }
   let userDetails = {}
   const getJwtToken = generateToken(user);
@@ -51,8 +51,8 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
 
   res.status(200).json({
     message: 'Google sign-in successful',
-    authId:authId,
-    data: {...userDetails},
+    authId: authId,
+    data: { ...userDetails },
     profileComplete: given_name,
   });
 
@@ -166,11 +166,11 @@ exports.createUser = asyncWrapper(async (req, res) => {
   // Check for existing user
   let existingUser = await usersModel.findOne({ $or: [{ email }, { phone }] });
   if (existingUser && userId) {
-    createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true});
-  
+    createdUser = await usersModel.findByIdAndUpdate(userId, userData, { new: true });
+
     const userObject = createdUser.toObject();
     delete userObject.password;
-  
+
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
       status: customConstants.messages.MESSAGE_SUCCESS,
       message:
@@ -180,12 +180,12 @@ exports.createUser = asyncWrapper(async (req, res) => {
       data: userObject,
     });
   }
-  else{
+  else {
     createdUser = await usersModel.create(userData);
-  
+
     const userObject = createdUser.toObject();
     delete userObject.password;
-  
+
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
       status: customConstants.messages.MESSAGE_SUCCESS,
       message:
@@ -196,7 +196,7 @@ exports.createUser = asyncWrapper(async (req, res) => {
     });
   }
 
-  
+
 });
 
 
@@ -327,22 +327,81 @@ exports.middlewareUpdateUserDetails = asyncWrapper(async (req, res, next) => {
  * @params userId
  */
 exports.updateUserDetails = asyncWrapper(async (req, res) => {
-  const user = await usersModel.findById(req.params.userId).lean()
-  var updateAccount;
-  var updateUser;
-  if (user) {
-    updateUser = await usersModel.findByIdAndUpdate(req.params.userId, { $set: { ...req.body, updatedBy: req.user._id } }, { new: true });
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    userType,
+    password,
+    role,
+    registrationMethod,
+    highestQualification,
+    nationality,
+    emiratesTutor,
+    hasPrivateTutorLicense,
+    licenseDocumentUrl,
+    modeOfTeaching,
+    availability,
+    expectedFeePerHour,
+    curriculum,
+    subject,
+    emirates,
+    currentLocationURL,
+    mapLocation,
+  } = req.body;
+  const { userId } = req.params
+  const userData = {
+    firstName,
+    lastName,
+    email,
+    phone,
+    userType,
+    // password: await hashPwd(password),
+    registrationMethod: registrationMethod,
+    status: 'active',
+    role: role || 'manager',
+  };
+
+  let createdUser;
+  if (userType === 'tutor') {
+    userData.tutorProfile = {
+      highestQualification,
+      nationality,
+      registrationMethod: registrationMethod,
+      emirates: emiratesTutor,
+      location: {
+        currentLocationURL,
+        mapLocation,
+      },
+      hasPrivateTutorLicense,
+      licenseDocumentUrl,
+      modeOfTeaching,
+      availability,
+      expectedFeePerHour,
+    };
+    // createdUser = await tutorsModel.create(userData);
+  } else if (['parent', 'student'].includes(userType)) {
+    userData.parentStudentProfile = {
+      curriculum,
+      subject,
+      emirates,
+      location: {
+        currentLocationURL,
+        mapLocation,
+      },
+    };
+    // createdUser = await usersModel.create(userData);
   }
-  const userObject = updateUser.toObject();
+  createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true});
+
+  const userObject = createdUser.toObject();
   delete userObject.password;
-  console.log("updateUser-delete password", userObject);
-  // Return success response
-  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+
+  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
-    message: customConstants.messages.MESSAGE_USER_DETAILS_UPDATED,
-    data: {
-      userObject
-    }
+    message:customConstants.messages.MESSAGE_USER_DETAILS_UPDATED,
+    data: userObject,
   });
 
 })
