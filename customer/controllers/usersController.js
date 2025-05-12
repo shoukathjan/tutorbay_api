@@ -399,7 +399,7 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
   const userObject = createdUser.toObject();
   delete userObject.password;
 
-  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
+  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
     message:customConstants.messages.MESSAGE_USER_DETAILS_UPDATED,
     data: userObject,
