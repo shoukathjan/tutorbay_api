@@ -149,7 +149,9 @@
 
     
     "MESSAGE_CREATE_REQUIREMENT":"Your tutoring requirement has been posted successfully. Our tutors will reach out to you shortly.",
-    "MESSAGE_GET_SINGLE_USER_REQUIREMENTS":"Requirements fetched successfully."
+    "MESSAGE_GET_SINGLE_USER_REQUIREMENTS":"Requirements fetched successfully.",
+    "MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS":"User details fetched successfully."
+
   },
   "statusCodes": {
     "FORBIDDEN": 403,

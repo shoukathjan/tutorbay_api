@@ -14,7 +14,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 exports.googleLogin = asyncWrapper(async (req, res) => {
-  const { token } = req.body;
+  const { token, userType } = req.body;
   const ticket = await client.verifyIdToken({
     idToken: token,
     audience: process.env.GOOGLE_CLIENT_ID,
@@ -31,6 +31,7 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
     user = await usersModel.create({
       authId,
       email,
+      userType,
       registrationMethod: 'google',
       firstName: given_name,
       lastName: family_name,

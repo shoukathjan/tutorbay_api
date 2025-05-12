@@ -1,6 +1,7 @@
 const asyncWrapper = require('../../middleware/asyncWrapper')
 const postRequireMentsModel = require('../../models/postRequirementsModel')
-const customConstants = require('../../config/constants.json')
+const customConstants = require('../../config/constants.json');
+const tutorsModel = require('../../models/tutorsModel');
 exports.createRequireMents = asyncWrapper(async (req, res) => {
     const {
         userId,
@@ -34,5 +35,16 @@ exports.getSingleUserRequirements = asyncWrapper(async (req, res) => {
         status: customConstants.messages.MESSAGE_SUCCESS,
         message: customConstants.messages.MESSAGE_GET_SINGLE_USER_REQUIREMENTS,
         data:requirementDetails
+    });
+})
+
+exports.getParentsOrTutorsListByuserType = asyncWrapper(async(req,res)=>{
+    const {userType} = req.query
+    let userDetails = ["parent","student"].includes(userType) ? await postRequireMentsModel.find({}) : await tutorsModel.find({})
+    const formattedUserType = userType.charAt(0).toUpperCase() + userType.slice(1) + "s";
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
+        status: customConstants.messages.MESSAGE_SUCCESS,
+        message: customConstants.messages.MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS.replace("User",formattedUserType),
+        data:userDetails
     });
 })

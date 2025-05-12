@@ -80,7 +80,7 @@ const usersSchema = new mongoose.Schema(
         userType: {
             type: String,
             enum: {
-                values: ['tutor', 'parent', 'student', 'admin'],
+                values: ['tutor', 'parent', 'student', 'super-admin'],
                 message: '{VALUE} is not a valid user type',
             },
             required: [true, 'User type is required'],
