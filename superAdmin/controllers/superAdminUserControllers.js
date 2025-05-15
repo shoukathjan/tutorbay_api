@@ -1,7 +1,7 @@
 const usersModel = require('../../models/usersModel')
 const asyncWrapper = require('../../middleware/asyncWrapper')
 const { validateUserMobileEmailData, validatePhoneNumber } = require('../../utils/userLoginValidation')
-const { hashPwd, comparePassword } = require('../../utils/helpers')
+const { hashPwd, comparePassword, sendEmail } = require('../../utils/helpers')
 const customConstants = require('../config/customConstants.json')
 const sessionsModel = require('../../models/sessionsModel');
 
@@ -132,11 +132,15 @@ exports.updateUserStatus = asyncWrapper(async(req,res)=>{
     active: "active",
     delete: "delete",
     block: "block",
+    hold:"hold",
+    reject:"reject"
   };
   
-  let userStatus = statusMap[status] || "in-progress";
+  let userStatus = statusMap[status] || "approve";
   
-  await usersModel.findByIdAndUpdate(userId,{status: userStatus},{new:true})
+  let userDetails = await usersModel.findByIdAndUpdate(userId,{status: userStatus},{new:true})
+  await sendEmail(status,userDetails.firstName+" "+userDetails.lastName,  userDetails.email)
+
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
     message: `Account ${userStatus === "active" ? "activated" : userStatus+'ed'} successfully.`

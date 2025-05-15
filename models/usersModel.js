@@ -90,7 +90,7 @@ const usersSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: {
-                values: ['active', 'delete', 'block'],
+                values: ['active', 'delete', 'block','hold','reject'],
                 message: '{VALUE} is not a valid status',
             },
             default: 'active',
@@ -202,7 +202,7 @@ const usersSchema = new mongoose.Schema(
                 modeOfTeaching: {
                     type: String,
                     enum: {
-                        values: ['Online', 'In-Person', 'Both'],
+                        values: ['online', 'offline', 'both'],
                         message: '{VALUE} is not a valid teaching mode',
                     },
                     //   required: [true, 'Mode of teaching is required for tutors'],

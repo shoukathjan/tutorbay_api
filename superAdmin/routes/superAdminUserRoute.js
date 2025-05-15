@@ -8,7 +8,6 @@ const {
 }=require('../controllers/superAdminUserControllers')
 
 router.post('/login', validateLoginProcess,superAdminLogin);
-console.log('Chanduuu')
 router.use(superAdminAuth)
 
 router.patch('/update-user-status',updateUserStatus)
