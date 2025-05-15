@@ -40,7 +40,7 @@ exports.getSingleUserRequirements = asyncWrapper(async (req, res) => {
 
 exports.getParentsOrTutorsListByuserType = asyncWrapper(async(req,res)=>{
     const {userType} = req.query
-    let userDetails = ["parent","student"].includes(userType) ? await postRequireMentsModel.find({}) : await tutorsModel.find({})
+    let userDetails = ["parent","student"].includes(userType) ? await postRequireMentsModel.find({userType:userType}) : await tutorsModel.find({})
     const formattedUserType = userType.charAt(0).toUpperCase() + userType.slice(1) + "s";
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
         status: customConstants.messages.MESSAGE_SUCCESS,
