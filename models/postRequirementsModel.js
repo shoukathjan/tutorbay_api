@@ -36,7 +36,7 @@ const postRequirementSchema = new mongoose.Schema(
             required: false,
             trim: true,
         },
-        emirates: {
+        emirateId: {
             type: String,
             required: true,
             trim: true,
@@ -56,20 +56,20 @@ const postRequirementSchema = new mongoose.Schema(
             enum: ['online', 'offline', 'both'],
             required: true,
         },
-        availability: {
-            type: [
-                {
-                    days: {
-                        type: String,
-                        enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-                        // required: true
-                    },
-                    startTime: { type: String },
-                    endTime: { type: String }
-                }
-            ],
-            // required: true
-        },
+        // availability: {
+        //     type: [
+        //         {
+        //             days: {
+        //                 type: String,
+        //                 enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        //                 // required: true
+        //             },
+        //             startTime: { type: String },
+        //             endTime: { type: String }
+        //         }
+        //     ],
+        //     // required: true
+        // },
         expectedFee: {
             type: Number,
             required: false,

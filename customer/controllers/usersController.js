@@ -21,8 +21,8 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
   });
 
   const payload = ticket.getPayload();
-
   const { sub: authId, email, given_name, family_name, picture } = payload;
+  console.log('payload:===',{sub: authId}, email, given_name, family_name, picture)
 
   let user = await usersModel.findOne({ $or: [{ authId }, { email }] });
 
@@ -104,12 +104,14 @@ exports.createUser = asyncWrapper(async (req, res) => {
     lastName,
     email,
     phone,
+    grade,
     userType,
     password,
     role,
     registrationMethod,
     highestQualification,
     nationality,
+    city,
     emiratesTutor,
     hasPrivateTutorLicense,
     licenseDocumentUrl,
@@ -118,7 +120,7 @@ exports.createUser = asyncWrapper(async (req, res) => {
     expectedFeePerHour,
     curriculum,
     subject,
-    emirates,
+    emirateId,
     currentLocationURL,
     mapLocation,
   } = req.body;
@@ -138,9 +140,11 @@ exports.createUser = asyncWrapper(async (req, res) => {
   if (userType === 'tutor') {
     userData.tutorProfile = {
       highestQualification,
+      grade,
       nationality,
+      city,
       registrationMethod: registrationMethod,
-      emirates: emiratesTutor,
+      emirateId,
       location: {
         currentLocationURL,
         mapLocation,
@@ -155,8 +159,10 @@ exports.createUser = asyncWrapper(async (req, res) => {
   } else if (['parent', 'student'].includes(userType)) {
     userData.parentStudentProfile = {
       curriculum,
+      grade,
       subject,
-      emirates,
+      city,
+      emirateId,
       location: {
         currentLocationURL,
         mapLocation,
@@ -196,8 +202,6 @@ exports.createUser = asyncWrapper(async (req, res) => {
       data: userObject,
     });
   }
-
-
 });
 
 
@@ -334,6 +338,8 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
     email,
     phone,
     userType,
+    grade,
+    city,
     password,
     role,
     registrationMethod,
@@ -347,7 +353,7 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
     expectedFeePerHour,
     curriculum,
     subject,
-    emirates,
+    emirateId,
     currentLocationURL,
     mapLocation,
   } = req.body;
@@ -369,8 +375,10 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
     userData.tutorProfile = {
       highestQualification,
       nationality,
+      city,
       registrationMethod: registrationMethod,
-      emirates: emiratesTutor,
+      emirateId,
+      grade,
       location: {
         currentLocationURL,
         mapLocation,
@@ -386,7 +394,9 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
     userData.parentStudentProfile = {
       curriculum,
       subject,
-      emirates,
+      city,
+      grade,
+      emirateId,
       location: {
         currentLocationURL,
         mapLocation,
@@ -394,7 +404,7 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
     };
     // createdUser = await usersModel.create(userData);
   }
-  createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true});
+  createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true, upsert:true});
 
   const userObject = createdUser.toObject();
   delete userObject.password;

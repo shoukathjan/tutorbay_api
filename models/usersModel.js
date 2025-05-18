@@ -34,12 +34,12 @@ const usersSchema = new mongoose.Schema(
                 function () {
                     return this.registrationMethod === 'manual';
                 },
-                'Password is required for manual registration',
+                'Mobile Number is required for manual registration',
             ],
             // match: [/^\+?\d{10,15}$/, 'Phone number must be 10-15 digits'],
             // minlength: [10, 'Phone number must be at least 10 digits'],
             // maxlength: [15, 'Phone number cannot exceed 15 digits'],
-            index: { unique: true },
+            index: true,
             default: '',
         },
         email: {
@@ -113,15 +113,30 @@ const usersSchema = new mongoose.Schema(
                     //   maxlength: [100, 'Subject cannot exceed 100 characters'],
                     default: '',
                 },
-                emirates: {
+                emirateId: {
                     type: String,
                     //   enum: {
                     //     values: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
                     //     message: '{VALUE} is not a valid emirate',
                     //   },
-                    //   required: [true, 'Emirate is required for parents and students'],
+                    required: [true, 'EmirateId is required for parents and students'],
                     default: '',
                     index: true,
+                },
+                grade:{
+                    type:String,
+                    default:""
+                },
+                nationality: {
+                    type: String,
+                    //   required: [true, 'Nationality is required for tutors'],
+                    //   trim: true,
+                    //   maxlength: [50, 'Nationality cannot exceed 50 characters'],
+                    default: '',
+                },
+                city:{
+                    type:String,
+                    default:""
                 },
                 location: {
                     currentLocationURL: {
@@ -141,6 +156,10 @@ const usersSchema = new mongoose.Schema(
                     },
                 },
             },
+            message:{
+                type:String,
+                default:""
+            } 
             // required: function () {
             //     return this.userType === 'parent' || this.userType === 'student';
             // },
@@ -154,6 +173,10 @@ const usersSchema = new mongoose.Schema(
                     //   maxlength: [100, 'Qualification cannot exceed 100 characters'],
                     default: '',
                 },
+                grade:{
+                    type:String,
+                    default:""
+                },
                 nationality: {
                     type: String,
                     //   required: [true, 'Nationality is required for tutors'],
@@ -161,7 +184,7 @@ const usersSchema = new mongoose.Schema(
                     //   maxlength: [50, 'Nationality cannot exceed 50 characters'],
                     default: '',
                 },
-                emirates: {
+                emirateId: {
                     type: String,
                     //   enum: {
                     //     values: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
@@ -170,6 +193,10 @@ const usersSchema = new mongoose.Schema(
                     //   required: [true, 'Emirate is required for tutors'],
                     default: '',
                     index: true,
+                },
+                city:{
+                    type:String,
+                    default:""
                 },
                 location: {
                     currentLocationURL: {
@@ -246,6 +273,10 @@ const usersSchema = new mongoose.Schema(
                     default: 0,
                 },
             },
+            message:{
+                type:String,
+                default:""
+            } 
             // required: function () {
             //     return this.userType === 'tutor';
             // },
