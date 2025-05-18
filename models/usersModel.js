@@ -119,7 +119,7 @@ const usersSchema = new mongoose.Schema(
                     //     values: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
                     //     message: '{VALUE} is not a valid emirate',
                     //   },
-                    required: [true, 'EmirateId is required for parents and students'],
+                    // required: [true, 'EmirateId is required for parents and students'],
                     default: '',
                     index: true,
                 },
@@ -228,10 +228,10 @@ const usersSchema = new mongoose.Schema(
                 },
                 modeOfTeaching: {
                     type: String,
-                    enum: {
-                        values: ['online', 'offline', 'both'],
-                        message: '{VALUE} is not a valid teaching mode',
-                    },
+                    // enum: {
+                    //     values: ['online', 'offline', 'both'],
+                    //     message: '{VALUE} is not a valid teaching mode',
+                    // },
                     //   required: [true, 'Mode of teaching is required for tutors'],
                     default: 'Both',
                 },

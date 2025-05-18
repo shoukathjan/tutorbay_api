@@ -42,7 +42,7 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
     user = await usersModel.findOneAndUpdate({ email: email }, { authId: authId }, { new: true })
   }
   let userDetails = {}
-  const getJwtToken = generateToken(user);
+  const getJwtToken = await generateToken(user);
   req.body.userId = user._id;
   userDetails.user = user.toObject();
   req.body.accessToken = getJwtToken.jwtToken;
