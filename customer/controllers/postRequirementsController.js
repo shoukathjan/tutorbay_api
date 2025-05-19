@@ -51,3 +51,31 @@ exports.getParentsOrTutorsListByuserType = asyncWrapper(async(req,res)=>{
         data:userDetails
     });
 })
+
+
+exports.updateRequireMents = asyncWrapper(async(req,res)=>{
+    const {requirementId} = req.query
+    const {
+        subject,
+        curriculum,
+        grade,
+        emirateId,
+        currentLocationURL,
+        mapLocation,
+        modeOfTeaching,
+        days,
+        preferredTime,
+        expectedFee,
+        additionalNotes,
+        status
+    } = req.body
+    req.body.location = {
+        currentLocationURL:currentLocationURL,
+        mapLocation:mapLocation
+    }
+    const postRequireMent = await postRequireMentsModel.findByIdAndUpdate(requirementId,req.body)
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+        status: customConstants.messages.MESSAGE_SUCCESS,
+        message: customConstants.messages.MESSAGE_UPDATE_REQUIREMENT
+    });
+})
