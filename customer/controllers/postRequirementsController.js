@@ -19,6 +19,7 @@ exports.createRequireMents = asyncWrapper(async (req, res) => {
         status
     } = req.body
     req.body.userId = req.user._id
+    req.body.userType = req.user.userType
     req.body.location = {
         currentLocationURL:currentLocationURL,
         mapLocation:mapLocation
