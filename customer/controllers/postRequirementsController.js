@@ -4,16 +4,13 @@ const customConstants = require('../../config/constants.json');
 const tutorsModel = require('../../models/tutorsModel');
 exports.createRequireMents = asyncWrapper(async (req, res) => {
     const {
-        userId,
         userType,
         subject,
         curriculum,
         grade,
-        emirates,
-        location: {
-            currentLocationURL,
-            mapLocation
-        },
+        emirateId,
+        currentLocationURL,
+        mapLocation,
         modeOfTeaching,
         days,
         preferredTime,
@@ -21,6 +18,11 @@ exports.createRequireMents = asyncWrapper(async (req, res) => {
         additionalNotes,
         status
     } = req.body
+    req.body.userId = req.user._id
+    req.body.location = {
+        currentLocationURL:currentLocationURL,
+        mapLocation:mapLocation
+    }
     const postRequireMent = await postRequireMentsModel.create(req.body)
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
         status: customConstants.messages.MESSAGE_SUCCESS,
