@@ -177,6 +177,10 @@ const usersSchema = new mongoose.Schema(
                     type:String,
                     default:""
                 },
+                wallet:{
+                    type:Number,
+                    default:0
+                },
                 nationality: {
                     type: String,
                     //   required: [true, 'Nationality is required for tutors'],
