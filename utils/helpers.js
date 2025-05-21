@@ -19,7 +19,8 @@ async function comparePassword(password, hashedPassword) {
 
 const axios = require('axios');
 const emailTemplate = require('./emailTemplate');
-async function sendEmail(status, userName, email) {
+const OTPEmailTemplate = require('./otpEmailTemplate');
+async function sendStatusEmail(status, userName, email) {
 
     const apikey = process.env.BREVO_API_KEY
     const url = "https://api.sendinblue.com/v3/smtp/email"
@@ -55,8 +56,45 @@ async function sendEmail(status, userName, email) {
 
 }
 
+async function sendOTPtoEmail(userName, email, otp) {
+
+    const apikey = process.env.BREVO_API_KEY
+    const url = "https://api.sendinblue.com/v3/smtp/email"
+    const emailData = {
+        sender: {
+            name: "Tutorbay",
+            email: process.env.BREVO_EMAIL
+        },
+        to: [
+            {
+                email: email
+            }
+
+        ],
+        subject: "Test Email",
+        // htmlContent: '<html><body><h1>Hello World!!!!</h1></body></html>'
+        htmlContent: await OTPEmailTemplate(userName, otp)
+
+    }
+    try {
+        console.log('Enter--11111')
+        const response = await axios.post(url, emailData, {
+            headers: {
+                'Content-Type': "application/json",
+                'api-key': apikey
+            }
+        })
+        console.log('Email sent successfully................')
+    } catch (error) {
+        console.log("error:===", error)
+    }
+
+
+}
+
 module.exports = {
     hashPwd,
     comparePassword,
-    sendEmail
+    sendStatusEmail,
+    sendOTPtoEmail
 }

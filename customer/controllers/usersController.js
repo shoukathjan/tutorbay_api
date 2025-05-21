@@ -3,13 +3,14 @@ const usersModel = require('../../models/usersModel');
 const asyncWrapper = require('../../middleware/asyncWrapper');
 const customConstants = require('../../config/constants.json');
 const sessionsModel = require('../../models/sessionsModel');
-const { hashPwd, comparePassword, twelveWeeksSales } = require('../../utils/helpers');
+const { hashPwd, comparePassword, twelveWeeksSales, sendOTPtoEmail } = require('../../utils/helpers');
 const { OAuth2Client } = require('google-auth-library');
 const mongoose = require('mongoose')
 
 const { validateUserMobileEmailData, validatePhoneNumber } = require('../../utils/userLoginValidation');
 const tutorsModel = require('../../models/tutorsModel');
 const { generateToken } = require('../../utils/utilsFunctions');
+const userOtpsModel = require('../../models/userOtpsModel');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
@@ -22,7 +23,7 @@ exports.googleLogin = asyncWrapper(async (req, res) => {
 
   const payload = ticket.getPayload();
   const { sub: authId, email, given_name, family_name, picture } = payload;
-  console.log('payload:===',{sub: authId}, email, given_name, family_name, picture)
+  console.log('payload:===', { sub: authId }, email, given_name, family_name, picture)
 
   let user = await usersModel.findOne({ $or: [{ authId }, { email }] });
 
@@ -189,8 +190,7 @@ exports.createUser = asyncWrapper(async (req, res) => {
   }
   else {
     createdUser = await usersModel.create(userData);
-
-    const userObject = createdUser.toObject();
+    let userObject = createdUser.toObject();
     delete userObject.password;
 
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_CREATED).json({
@@ -201,6 +201,110 @@ exports.createUser = asyncWrapper(async (req, res) => {
           : customConstants.messages.MESSAGE_USER_CREATED,
       data: userObject,
     });
+  }
+});
+
+exports.verifyEmail = asyncWrapper(async(req,res)=>{
+  const {firstName, lastName, email} = req.body
+  let currentTime = new Date()
+    const sixDigitNumber = Math.floor(100000 + Math.random() * 900000);
+    currentTime.setSeconds(currentTime.getSeconds() + 600)
+    let userotpObj = {
+      email,
+      otpCode: parseInt(sixDigitNumber),
+      otpExpiredTime: currentTime,
+      // userId: userObject._id
+    }
+    let userOtpDetails
+    let userDetails = await usersModel.findOne({email:email})
+    if(userDetails){
+      userOtpDetails = await userOtpsModel.findOneAndUpdate({email:email},userotpObj,{new: true, upsert: true})
+      await sendOTPtoEmail(userName = firstName + " " + lastName, email, parseInt(sixDigitNumber))
+    }
+    else{
+      userOtpDetails = await userOtpsModel.create(userotpObj)
+      await sendOTPtoEmail(userName = firstName + " " + lastName, email, parseInt(sixDigitNumber))
+    }
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+      status: customConstants.messages.MESSAGE_SUCCESS,
+      message: customConstants.messages.MESSAGE_OTP_SENT,
+      data: userOtpDetails
+    });
+})
+
+exports.validateUser = asyncWrapper(async (req, res, next) => {
+  const { email } = req.body;
+  var userData
+  const userInDataBase = await usersModel.findOne( { email: email })
+  if (!userInDataBase) {
+      userData = await userOtpsModel.findOne({ email: email });
+  } else if (userInDataBase) {
+      userData = await userOtpsModel.findOne({ email: userInDataBase.email })
+  }
+
+  //If user does not have record in our database
+  if (!userData) {
+      return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+          status: customConstants.messages.MESSAGE_FAIL,
+          message: customConstants.messages.MESSAGE_USER_NOT_FOUND,
+      });
+  }
+  next();
+});
+
+exports.validateUserOTPExpiration = asyncWrapper(async (req, res, next) => {
+  const { email } = req.body;
+  const currentDate = new Date();
+  let userOTPData = await userOtpsModel.findOne({ email });
+  if (currentDate > userOTPData.otpExpiredTime) {
+      return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+          status: customConstants.messages.MESSAGE_FAIL,
+          message: customConstants.messages.MESSAGE_OTP_EXPIRED,
+      });
+  }
+  next();
+});
+
+// Validate OTP code
+exports.verifyOTP = asyncWrapper(async (req, res) => {
+
+  const { otp, email } = req.body;
+
+  const userProperties = {};
+  let currentStaff = null;
+
+  // If user object not found
+  let userOTPData = await userOtpsModel.findOne({ email });
+  // currentStaff = await usersModel.findOne({ email: email }).lean();
+
+  // reset currentStaff details.
+  // const userId = currentStaff._id.toString();
+  // currentStaff.email = userOTPData.email;
+  // userOTPData.userId = userId;
+
+  // insert data into session.
+  // const jwtToken = await currentStaff.getJWTToken();
+  // const jwtTokenExpires = await currentStaff.getJWTTokenExpireDate(jwtToken);
+
+  // req.body.accessToken = jwtToken;
+  // req.body.userId = currentStaff._id.toString();
+  // req.body.expirationTime = jwtTokenExpires.exp;
+
+  // const sessionDetails = await sessionsModel.create(req.body);
+
+  if (userOTPData.email === email && userOTPData.otpCode === parseInt(otp)) {
+      await userOtpsModel.findOneAndUpdate({email:email},{otpVerifiedTime: new Date()},{new: true, upsert: true})
+      res.send({
+          status: customConstants.messages.MESSAGE_SUCCESS,
+          message: customConstants.messages.MESSAGE_OTP_VERIFIED,
+          // data: { user: currentStaff, sessionDetails }
+      });
+  }
+  else {
+      res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+          status: customConstants.messages.MESSAGE_FAIL,
+          message: customConstants.messages.MESSAGE_OTP_NOT_VERIFIED,
+      });
   }
 });
 
@@ -404,14 +508,14 @@ exports.updateUserDetails = asyncWrapper(async (req, res) => {
     };
     // createdUser = await usersModel.create(userData);
   }
-  createdUser = await usersModel.findByIdAndUpdate(userId,userData,{new:true, upsert:true});
+  createdUser = await usersModel.findByIdAndUpdate(userId, userData, { new: true, upsert: true });
 
   const userObject = createdUser.toObject();
   delete userObject.password;
 
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
-    message:customConstants.messages.MESSAGE_USER_DETAILS_UPDATED,
+    message: customConstants.messages.MESSAGE_USER_DETAILS_UPDATED,
     data: userObject,
   });
 
