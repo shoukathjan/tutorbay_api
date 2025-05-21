@@ -149,6 +149,7 @@ exports.createUser = asyncWrapper(async (req, res) => {
         currentLocationURL,
         mapLocation,
       },
+      wallet:15,
       hasPrivateTutorLicense,
       licenseDocumentUrl,
       modeOfTeaching,
