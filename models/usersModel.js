@@ -134,6 +134,14 @@ const usersSchema = new mongoose.Schema(
                     //   maxlength: [50, 'Nationality cannot exceed 50 characters'],
                     default: '',
                 },
+                wallet:{
+                    type:Number,
+                    default:0
+                },
+                area:{
+                    type:String,
+                    default:""
+                },
                 city:{
                     type:String,
                     default:""
@@ -193,6 +201,14 @@ const usersSchema = new mongoose.Schema(
                     //   required: [true, 'Emirate is required for tutors'],
                     default: '',
                     index: true,
+                },
+                wallet:{
+                    type:Number,
+                    default:0
+                },
+                area:{
+                    type:String,
+                    default:""
                 },
                 city:{
                     type:String,
@@ -272,6 +288,10 @@ const usersSchema = new mongoose.Schema(
                     //   max: [1000, 'Fee cannot exceed 1000'],
                     default: 0,
                 },
+                requirementsInfo:{
+                    type:Array,
+                    default:[]
+                }
             },
             message:{
                 type:String,

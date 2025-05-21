@@ -8,7 +8,6 @@ const { OAuth2Client } = require('google-auth-library');
 const mongoose = require('mongoose')
 
 const { validateUserMobileEmailData, validatePhoneNumber } = require('../../utils/userLoginValidation');
-const tutorsModel = require('../../models/tutorsModel');
 const { generateToken } = require('../../utils/utilsFunctions');
 const userOtpsModel = require('../../models/userOtpsModel');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

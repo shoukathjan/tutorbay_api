@@ -1,7 +1,8 @@
 const asyncWrapper = require('../../middleware/asyncWrapper')
 const postRequireMentsModel = require('../../models/postRequirementsModel')
 const customConstants = require('../../config/constants.json');
-const tutorsModel = require('../../models/tutorsModel');
+const walletTransactionsModel = require('../../models/walletTransactionsModel');
+const usersModel = require('../../models/usersModel');
 exports.createRequireMents = asyncWrapper(async (req, res) => {
     const {
         userType,
@@ -77,5 +78,35 @@ exports.updateRequireMents = asyncWrapper(async(req,res)=>{
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
         status: customConstants.messages.MESSAGE_SUCCESS,
         message: customConstants.messages.MESSAGE_UPDATE_REQUIREMENT
+    });
+})
+
+
+exports.viewRequirementProfile = asyncWrapper(async (req, res) => {
+    const { requirementId } = req.query
+    await postRequireMentsModel.findByIdAndUpdate(
+        requirementId,
+        { $push: { requirementViewedInfo: req.user._id } },
+        { new: true, upsert: true }
+    ).populate('userId');
+
+    let walletObject = {
+        userId: req.user._id,
+        requirementId: requirementId,
+        transactionType: 'debit',
+        walletCredits: 1,
+        userType: req.user.userType,
+        status: "success"
+    }
+    await walletTransactionsModel.create(walletObject)
+    const usersDetials = await usersModel.findByIdAndUpdate(
+        req.user._id,
+        { $inc: { "tutorProfile.wallet": -1 } },
+        { new: true }
+      );
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+        status: customConstants.messages.MESSAGE_SUCCESS,
+        message: customConstants.messages.MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS,
+        data: usersDetials
     });
 })

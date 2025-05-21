@@ -84,6 +84,10 @@ const postRequirementSchema = new mongoose.Schema(
             enum: ['open', 'active', 'close'],
             default: 'open',
         },
+        requirementViewedInfo:{
+            type: Array,
+            default:[]
+        }
     },
     { timestamps: true }
 );
