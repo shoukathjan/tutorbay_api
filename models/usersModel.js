@@ -181,6 +181,13 @@ const usersSchema = new mongoose.Schema(
                     //   maxlength: [100, 'Qualification cannot exceed 100 characters'],
                     default: '',
                 },
+                subject: {
+                    type: String,
+                    //   required: [true, 'Subject is required for parents and students'],
+                    //   trim: true,
+                    //   maxlength: [100, 'Subject cannot exceed 100 characters'],
+                    default: '',
+                },
                 grade:{
                     type:String,
                     default:""
