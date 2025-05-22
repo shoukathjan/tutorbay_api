@@ -32,6 +32,7 @@
     "node-schedule": "^2.1.1",
     "path": "^0.12.7",
     "querystring": "^0.2.1",
+    "stripe": "^18.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   }
