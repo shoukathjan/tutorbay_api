@@ -14,6 +14,7 @@ const userOtpsSchema = new mongoose.Schema({
     // },
     email:{
         type: String,
+        index:{unique:true},
         default: ""
     },
     otpCode:{

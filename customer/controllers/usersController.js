@@ -216,7 +216,7 @@ exports.verifyEmail = asyncWrapper(async(req,res)=>{
       // userId: userObject._id
     }
     let userOtpDetails
-    let userDetails = await usersModel.findOne({email:email})
+    let userDetails = await userOtpsModel.findOne({email:email})
     if(userDetails){
       userOtpDetails = await userOtpsModel.findOneAndUpdate({email:email},userotpObj,{new: true, upsert: true})
       await sendOTPtoEmail(userName = firstName + " " + lastName, email, parseInt(sixDigitNumber))
