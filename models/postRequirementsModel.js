@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const postRequirementSchema = new mongoose.Schema(
     {
-        postRequirementSchema: {
+        requirementId: {
             type: mongoose.Schema.Types.ObjectId,
             default: function () {
                 return this._id

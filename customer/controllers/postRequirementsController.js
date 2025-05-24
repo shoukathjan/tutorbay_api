@@ -110,3 +110,14 @@ exports.viewRequirementProfile = asyncWrapper(async (req, res) => {
         data: usersDetials
     });
 })
+
+
+exports.getSingleRequirement = asyncWrapper(async(req,res)=>{
+    const{requirementId} = req.query
+    const requirementDetails = await postRequireMentsModel.findById(requirementId).populate({path:"userId",select:"-password"})
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+        status: customConstants.messages.MESSAGE_SUCCESS,
+        message: customConstants.messages.MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS,
+        data: requirementDetails
+    });
+})

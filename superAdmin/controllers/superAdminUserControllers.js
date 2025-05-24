@@ -1,9 +1,10 @@
 const usersModel = require('../../models/usersModel')
 const asyncWrapper = require('../../middleware/asyncWrapper')
 const { validateUserMobileEmailData, validatePhoneNumber } = require('../../utils/userLoginValidation')
-const { hashPwd, comparePassword, sendEmail } = require('../../utils/helpers')
+const { hashPwd, comparePassword, sendStatusEmail } = require('../../utils/helpers')
 const customConstants = require('../config/customConstants.json')
 const sessionsModel = require('../../models/sessionsModel');
+const userOtpsModel = require('../../models/userOtpsModel')
 
 /*
 Miidleware function to controller, "loginUser"
@@ -133,16 +134,26 @@ exports.updateUserStatus = asyncWrapper(async(req,res)=>{
     delete: "delete",
     block: "block",
     hold:"hold",
-    reject:"reject"
-  };
-  
+    reject:"reject",
+    approve:"active"
+  };  
   let userStatus = statusMap[status] || "approve";
-  
-  let userDetails = await usersModel.findByIdAndUpdate(userId,{status: userStatus},{new:true})
-  await sendEmail(status,userDetails.firstName+" "+userDetails.lastName,  userDetails.email)
+  let userDataToUpdate = {
+    status: userStatus
+  }
+  let userData = await usersModel.findById(userId)
+  if(userData.userType === "tutor" && ["approve","active"].includes(userStatus)){
+    userDataToUpdate["tutorProfile.wallet"] = 3
+  }
+  else if(["parent","student"].includes(userData.userType) && ["approve","active"].includes(userStatus)){
+    userDataToUpdate["parentStudentProfile.wallet"] = 3
+  }
+  console.log("userDataToUpdate:===",userDataToUpdate)
+  let userDetails = await usersModel.findByIdAndUpdate(userId,userDataToUpdate,{new:true, upsert:true})
+  await sendStatusEmail(status,userDetails.firstName+" "+userDetails.lastName,  userDetails.email)
 
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
-    message: `Account ${userStatus === "active" ? "activated" : userStatus+'ed'} successfully.`
+    message: `Account ${status === "active" ? "activated" : status === "approve"? "approved": status+'ed'} successfully.`
   });
 })

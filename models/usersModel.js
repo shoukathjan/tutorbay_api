@@ -302,6 +302,10 @@ const usersSchema = new mongoose.Schema(
                 requirementsInfo:{
                     type:Array,
                     default:[]
+                },
+                profileViewedInfo:{
+                    type:Array,
+                    default:{}
                 }
             },
             message:{

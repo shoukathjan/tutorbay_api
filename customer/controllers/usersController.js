@@ -87,6 +87,13 @@ exports.validateUserRegistration = asyncWrapper(async (req, res, next) => {
       error: validatedData.error.details,
     });
   }
+  let userEmailVerified = await userOtpsModel.findOne({email:email})
+  if(!userEmailVerified){
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_EMAIL_NOT_VERIFIED,
+    });
+  }
   if (!['tutor', 'parent', 'student'].includes(userType)) {
     return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
       status: customConstants.messages.MESSAGE_FAIL,
@@ -149,7 +156,6 @@ exports.createUser = asyncWrapper(async (req, res) => {
         currentLocationURL,
         mapLocation,
       },
-      wallet:15,
       hasPrivateTutorLicense,
       licenseDocumentUrl,
       modeOfTeaching,

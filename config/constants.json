@@ -57,6 +57,7 @@
     "MESSAGE_MACHINE_ALREADY_TAKEN":"Selected machine is already taken. Please choose another.",
     "MESSAGE_LOGO_MANDATORY": "Logo field is  Mandatory.",
     "MESSAGE_WRONG_PASSWORD": "Invalid Password.",
+    "MESSAGE_EMAIL_NOT_VERIFIED": "Please verify your email address before completing registration.",
     "MESSAGE_WRONG_FIELDS": "Please enter valid data.",
     "MESSAGE_WRONG_CURRENT_PASSWORD": "Please enter the current password correctly.",
     "MESSAGE_ACCOUNT_ALREADY_DELETED": "Unauthorised request as the account doesn't exist / inactive.",
@@ -156,7 +157,8 @@
     "MESSAGE_CREATE_REQUIREMENT":"Your tutoring requirement has been posted successfully. Our tutors will reach out to you shortly.",
     "MESSAGE_UPDATE_REQUIREMENT":"Your tutoring requirement has been updated successfully.",
     "MESSAGE_GET_SINGLE_USER_REQUIREMENTS":"Requirements fetched successfully.",
-    "MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS":"User details fetched successfully."
+    "MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS":"User details fetched successfully.",
+    "MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS":"Requirement fetched successfully."
 
   },
   "statusCodes": {
