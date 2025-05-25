@@ -94,3 +94,25 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
 
     return res.json({ received: 'true' });
 })
+
+
+exports.validateUser = asyncWrapper(async (req, res,next) => {
+  const {userId:_id}  = req.user;
+
+  const user = await usersModel.findById(userId);
+  if (!user) {
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_USER_NOT_FOUND,
+    });
+  }
+
+  if(user.status != 'active'){
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+        status: customConstants.messages.MESSAGE_FAIL,
+        message: customConstants.messages.MESSAGE_USER_STATUS_IS_NOT_ACTIVE
+    })
+
+  }
+  next()
+});

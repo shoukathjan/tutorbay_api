@@ -158,7 +158,12 @@
     "MESSAGE_UPDATE_REQUIREMENT":"Your tutoring requirement has been updated successfully.",
     "MESSAGE_GET_SINGLE_USER_REQUIREMENTS":"Requirements fetched successfully.",
     "MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS":"User details fetched successfully.",
-    "MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS":"Requirement fetched successfully."
+    "MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS":"Requirement fetched successfully.",
+
+
+    "MESSAGE_REQUIREMENT_IS_NOT_FOUND": "Requirement not found.",
+    "MESSAGE_REQUIREMENT_UPDATE_FAILED": "We are unable to update this requiremnet due to the corresponding requirement is not 'open'."
+
 
   },
   "statusCodes": {

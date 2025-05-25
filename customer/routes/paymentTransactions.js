@@ -3,11 +3,12 @@ const router = require('express').Router()
 const {
     createPayment,
     paymentWebhook,
-    successThePayment
+    successThePayment,
+    validateUser
 } = require('../controllers/paymentTransactionController')
 
 
-router.post('/create-payment', createPayment)
+router.post('/create-payment', validateUser, createPayment)
 router.get('/success',successThePayment)
 
 router.post('/payment-webhook', paymentWebhook)

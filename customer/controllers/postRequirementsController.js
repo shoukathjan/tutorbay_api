@@ -121,3 +121,50 @@ exports.getSingleRequirement = asyncWrapper(async(req,res)=>{
         data: requirementDetails
     });
 })
+
+
+exports.validateUser = asyncWrapper(async (req, res,next) => {
+  const {userId:_id}  = req.user;
+
+  const user = await usersModel.findById(userId);
+  if (!user) {
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_USER_NOT_FOUND,
+    });
+  }
+
+  if(user.status != 'active'){
+    return res.status(customConstants.statusCodes.UNAUTHORIZED).json({
+        status: customConstants.messages.MESSAGE_FAIL,
+        message: customConstants.messages.MESSAGE_USER_STATUS_IS_NOT_ACTIVE
+    })
+
+  }
+  next()
+});
+
+
+
+exports.validateUpdatePostRequirement = asyncWrapper(async (req, res, next) => {
+
+  const requirementId = req.query
+
+  const requirementDetails = await postRequireMentsModel.findById(requirementId);
+
+  if (!requirementDetails) {
+    return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+      status: customConstants.messages.MESSAGE_FAIL,
+      message: customConstants.messages.MESSAGE_REQUIREMENT_IS_NOT_FOUND,
+    });
+  }
+
+  if(requirementDetails.status != 'open'){
+    return res.status(customConstants.statusCodes.UNPROCESSABLE_STATUS_CODE_FAIL).json({
+        status: customConstants.messages.MESSAGE_FAIL,
+        message: customConstants.messages.MESSAGE_REQUIREMENT_UPDATE_FAILED
+    })
+
+  }
+  next()
+});
