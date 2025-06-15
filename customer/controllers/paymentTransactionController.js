@@ -23,8 +23,8 @@ exports.createPayment = asyncWrapper(async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: 'http://localhost:5000/api/payments/success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'http://localhost:5000/api/paymentscancel',
+      success_url: 'https://tutorbay.netlify.app/payments/success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://tutorbay.netlify.app/paymentscancel',
       customer_email: customerEmail,
       metadata: { customerEmail }
     });
