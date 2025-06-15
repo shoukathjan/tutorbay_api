@@ -101,8 +101,8 @@ exports.viewRequirementProfile = asyncWrapper(async (req, res) => {
     await walletTransactionsModel.create(walletObject)
     const usersDetials = await usersModel.findByIdAndUpdate(
         req.user._id,
-        { $inc: { "tutorProfile.wallet": -1 } },
-        { new: true }
+        { $inc: { "wallet": -1 } },
+        { upsert:true,new: true }
       );
     return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
         status: customConstants.messages.MESSAGE_SUCCESS,
@@ -120,4 +120,23 @@ exports.getSingleRequirement = asyncWrapper(async(req,res)=>{
         message: customConstants.messages.MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS,
         data: requirementDetails
     });
+})
+
+exports.getMatchedprofiles = asyncWrapper(async(req,res)=>{
+    const userId = req.user._id
+    const userDetails = await usersModel.findById(userId)
+    const matchedRequirements = await postRequireMentsModel.aggregate([
+        {
+            $match:{
+                emirateId: userDetails?.tutorProfile?.emirateId,
+                subject: userDetails?.tutorProfile?.subject,
+                grade: userDetails?.tutorProfile?.grade
+            }
+        }
+    ])
+    return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+        status: customConstants.messages.MESSAGE_SUCCESS,
+        message: customConstants.messages.MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS,
+        data: matchedRequirements
+    })
 })

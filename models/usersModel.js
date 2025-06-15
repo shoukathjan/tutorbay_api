@@ -87,6 +87,10 @@ const usersSchema = new mongoose.Schema(
             default: 'parent',
             index: true,
         },
+        wallet:{
+            type:Number,
+            default:0
+        },
         status: {
             type: String,
             enum: {
@@ -133,10 +137,6 @@ const usersSchema = new mongoose.Schema(
                     //   trim: true,
                     //   maxlength: [50, 'Nationality cannot exceed 50 characters'],
                     default: '',
-                },
-                wallet:{
-                    type:Number,
-                    default:0
                 },
                 area:{
                     type:String,
@@ -212,10 +212,6 @@ const usersSchema = new mongoose.Schema(
                     //   required: [true, 'Emirate is required for tutors'],
                     default: '',
                     index: true,
-                },
-                wallet:{
-                    type:Number,
-                    default:0
                 },
                 area:{
                     type:String,
