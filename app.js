@@ -33,7 +33,7 @@ const superAdminUserRoutes = require('./superAdmin/routes/superAdminUserRoute')
 
 app.use('/api/users', usersRoute);
 app.use('/api/requirements', postRequireMentRoutes);
-// app.use('/api/payments', paymentTransactionsRoute);
+app.use('/api/payments', paymentTransactionsRoute);
 
 //Super Admin
 // app.use('/api/accounts',SuperAdminAccountRoutes)
