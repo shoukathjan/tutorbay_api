@@ -70,6 +70,7 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const random = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
   let tranasactionId = `TXN-${year}${month}${random}`;
+
   /*
   const sig = req.headers['stripe-signature'];
   let event = stripe.webhooks.constructEvent(
@@ -81,11 +82,11 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   let transactionDetails
   // Handle the event
   if (session?.payment_status === "paid") {
-    let userDetails = await usersModel.findById({email:session?.customerEmail})
+    let userDetails = await usersModel.findOne({email:session?.customer_email})
     // const paymentIntent = event.data.object;
     transactionDetails = await walletTransactionsModel.create(
       {
-        userId: req.user._id || userDetails._id,
+        userId:  userDetails._id || req.user._id,
         tranasactionId: tranasactionId,
         paymentId: session?.payment_intent,
         transactionType: 'credit',
@@ -100,7 +101,7 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   else {
     transactionDetails = await walletTransactionsModel.create(
       {
-        userId: req.user._id || userDetails._id,
+        userId: userDetails._id || req.user._id,
         tranasactionId: tranasactionId,
         transactionType: 'credit',
         walletCredits: 0,
