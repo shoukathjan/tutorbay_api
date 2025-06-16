@@ -47,7 +47,7 @@ exports.createPayment = asyncWrapper(async (req, res) => {
     data: {
       successUrl: session.url,
       cancelUrl: session.cancel_url,
-      // sessionId:session.id
+      // sessionId:session
     }
   });
 });
@@ -81,7 +81,7 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   let transactionDetails
   // Handle the event
   if (session?.payment_status === "paid") {
-    let userDetails = await usersModel.findById(req.user._id)
+    let userDetails = await usersModel.findById({email:session?.customerEmail})
     // const paymentIntent = event.data.object;
     transactionDetails = await walletTransactionsModel.create(
       {
@@ -89,7 +89,7 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
         tranasactionId: tranasactionId,
         paymentId: session?.payment_intent,
         transactionType: 'credit',
-        walletCredits: session?.amount_total,
+        walletCredits: session?.amount_total/100,
         userType: userDetails.userType,
         paymentStatus: 'success'
       }
@@ -114,6 +114,16 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
     message: customConstants.messages.MESSAGE_PAYMENT_SUCCESS,
+    data: transactionDetails
+  });
+})
+
+exports.getTransactions = asyncWrapper(async(req,res)=>{
+  const {userId} = req.query
+  const transactionDetails = await walletTransactionsModel.find({userId:userId}).populate({ path: "requirementId",populate:{path:"userId", select:"-password"}})
+  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+    status: customConstants.messages.MESSAGE_SUCCESS,
+    message: customConstants.messages.MESSAGE_PAYMENT_TRANSACTIONS,
     data: transactionDetails
   });
 })
