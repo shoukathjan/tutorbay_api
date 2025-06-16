@@ -158,7 +158,9 @@
     "MESSAGE_UPDATE_REQUIREMENT":"Your tutoring requirement has been updated successfully.",
     "MESSAGE_GET_SINGLE_USER_REQUIREMENTS":"Requirements fetched successfully.",
     "MESSAGE_GET_PARENTS_OR_TUTORS_DETAILS":"User details fetched successfully.",
-    "MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS":"Requirement fetched successfully."
+    "MESSAGE_GET_SINGLE_REQUIREMENT_DETAILS":"Requirement fetched successfully.",
+    
+    "MESSAGE_PAYMENT_SUCCESS":"Payment succesfully done."
 
   },
   "statusCodes": {

@@ -7,6 +7,17 @@ const walletTransactionsSchema = new mongoose.Schema({
             return this._id
         }
     },
+    tranasactionId:{
+        type:String,
+        index:{unique:true},
+        default:""
+    },
+    paymentId: {
+        type: String,
+        unique: true,
+        index: true,
+        sparse: true // allow multiple nulls/missing fields
+    },
     userId:{
         type: mongoose.Schema.Types.ObjectId,
         ref:'users',
@@ -31,7 +42,7 @@ const walletTransactionsSchema = new mongoose.Schema({
         type:String,
         default:""
     },
-    status:{
+    paymentStatus:{
         type:String,
         default:""
     },
