@@ -5,7 +5,8 @@ const {
     createPayment,
     paymentWebhook,
     successThePayment,
-    getTransactions
+    getTransactions,
+    getWalletAmount
 } = require('../controllers/paymentTransactionController')
 
 
@@ -15,5 +16,6 @@ router.get('/success-payment',successThePayment)
 router.post('/payment-webhook', paymentWebhook)
 
 router.get('/wallet-transactions',getTransactions)
+router.get('/get-wallet-amount',getWalletAmount)
 
 module.exports = router

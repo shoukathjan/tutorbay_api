@@ -78,34 +78,45 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   let transactionDetails
   // Handle the event
   if (session?.payment_status === "paid") {
-    let userDetails = await usersModel.findOne({email:session?.customer_email})
+    let userDetails = await usersModel.findOne({ email: session?.customer_email })
     // const paymentIntent = event.data.object;
-    transactionDetails = await walletTransactionsModel.create(
-      {
-        userId:  userDetails._id || req.user._id,
-        tranasactionId: tranasactionId,
-        paymentId: session?.payment_intent,
-        transactionType: 'credit',
-        walletCredits: session?.amount_total/100,
-        userType: userDetails.userType,
-        paymentStatus: 'success'
-      }
-    );
-    console.log('PaymentIntent was successful!');
-
+    transactionDetails = await walletTransactionsModel.findOne({ paymentId: session?.payment_intent })
+    if (!transactionDetails) {
+      transactionDetails = await walletTransactionsModel.create(
+        {
+          userId: userDetails._id || req.user._id,
+          tranasactionId: tranasactionId,
+          paymentId: session?.payment_intent,
+          transactionType: 'credit',
+          walletCredits: session?.amount_total / 100,
+          userType: userDetails.userType,
+          paymentStatus: 'success'
+        }
+      );
+      await usersModel.findByIdAndUpdate(
+        userDetails._id,
+        { $inc: { wallet: session?.amount_total / 100 } },
+        { new: true, upsert: true }
+      );
+      console.log('PaymentIntent was successful!');
+    }
   }
   else {
-    transactionDetails = await walletTransactionsModel.create(
-      {
-        userId: userDetails._id || req.user._id,
-        tranasactionId: tranasactionId,
-        transactionType: 'credit',
-        walletCredits: 0,
-        userType: userDetails.userType,
-        paymentStatus: 'fail'
-      }
-    );
-    console.log('PaymentIntent failed!');
+    transactionDetails = await walletTransactionsModel.findOne({ paymentId: session?.payment_intent })
+    if (!transactionDetails) {
+      transactionDetails = await walletTransactionsModel.create(
+        {
+          userId: userDetails._id || req.user._id,
+          tranasactionId: tranasactionId,
+          transactionType: 'credit',
+          paymentId: session?.payment_intent,
+          walletCredits: 0,
+          userType: userDetails.userType,
+          paymentStatus: 'fail'
+        }
+      );
+      console.log('PaymentIntent failed!');
+    }
   }
 
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
@@ -115,9 +126,19 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
   });
 })
 
-exports.getTransactions = asyncWrapper(async(req,res)=>{
-  const {userId} = req.query
-  const transactionDetails = await walletTransactionsModel.find({userId:userId}).populate({ path: "requirementId",populate:{path:"userId", select:"-password"}}).sort({_id:-1})
+exports.getTransactions = asyncWrapper(async (req, res) => {
+  const { userId } = req.query
+  const transactionDetails = await walletTransactionsModel.find({ userId: userId }).populate({ path: "requirementId", populate: { path: "userId", select: "-password" } }).sort({ _id: -1 })
+  return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
+    status: customConstants.messages.MESSAGE_SUCCESS,
+    message: customConstants.messages.MESSAGE_PAYMENT_TRANSACTIONS,
+    data: transactionDetails
+  });
+})
+
+exports.getWalletAmount = asyncWrapper(async(req,res)=>{
+  const { userId } = req.query
+  const transactionDetails = await usersModel.findById(userId,{wallet:1})
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
     message: customConstants.messages.MESSAGE_PAYMENT_TRANSACTIONS,
