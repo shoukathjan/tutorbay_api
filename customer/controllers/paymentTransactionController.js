@@ -117,7 +117,7 @@ exports.paymentWebhook = asyncWrapper(async (req, res) => {
 
 exports.getTransactions = asyncWrapper(async(req,res)=>{
   const {userId} = req.query
-  const transactionDetails = await walletTransactionsModel.find({userId:userId}).populate({ path: "requirementId",populate:{path:"userId", select:"-password"}})
+  const transactionDetails = await walletTransactionsModel.find({userId:userId}).populate({ path: "requirementId",populate:{path:"userId", select:"-password"}}).sort({_id:-1})
   return res.status(customConstants.statusCodes.SUCCESS_STATUS_CODE_SUCCESS).json({
     status: customConstants.messages.MESSAGE_SUCCESS,
     message: customConstants.messages.MESSAGE_PAYMENT_TRANSACTIONS,
