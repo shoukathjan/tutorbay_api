@@ -85,7 +85,18 @@ const postRequirementSchema = new mongoose.Schema(
             default: 'open',
         },
         requirementViewedInfo:{
-            type: Array,
+            type: [
+                {
+                    userId: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        default: null
+                    },
+                    viewedDate:{
+                        type: Date,
+                        default: new Date()
+                    }
+                }
+            ],
             default:[]
         }
     },
