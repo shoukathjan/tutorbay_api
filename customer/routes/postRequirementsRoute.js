@@ -6,7 +6,8 @@ const {
     updateRequireMents,
     viewRequirementProfile,
     getSingleRequirement,
-    getMatchedprofiles
+    getMatchedprofiles,
+    viewRequirementProfileForTutor
 } = require('../controllers/postRequirementsController')
 const auth = require('../../middleware/authentication')
 
@@ -21,5 +22,8 @@ router.get('/get-single-user-requirements',getSingleUserRequirements)
 router.get('/view-requirement-profile',viewRequirementProfile)
 router.get('/get-single-requirement',getSingleRequirement)
 router.get('/get-matched-requirements', getMatchedprofiles)
+
+router.get('/view-requirement-profile-for-tutor',viewRequirementProfileForTutor)
+
 
 module.exports = router
